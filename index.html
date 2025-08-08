@@ -172,21 +172,17 @@
         }
 
         /* ✨ Emoji border: tiles the emoji around ALL sides & corners */
-        .card.sparkle-border {
-            border-style: solid;
-            border-width: var(--sparkle-bw);
-            border-color: transparent;
-            /* center the emoji inside a square tile; extra transparent area avoids clipping */
-            border-image-source: url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' width='%%TILE%%' height='%%TILE%%'>\
-<text x='50%%' y='52%%' text-anchor='middle' dominant-baseline='middle' font-size='%%EMOJI%%'>✨</text>\
-</svg>"
-                    .replace('%%TILE%%', getComputedStyle(document.documentElement).getPropertyValue('--tile').trim() || '40') .replace('%%EMOJI%%', getComputedStyle(document.documentElement).getPropertyValue('--emoji').trim() || '28'));
-            /* slice at half the tile for even corner/edge cuts */
-            border-image-slice: 50%;
-            border-image-width: var(--sparkle-bw);
-            border-image-repeat: round;
-        }
+        /* ✨ Emoji border that repeats around all sides */
+.card.sparkle-border {
+  border-style: solid;
+  border-width: 12px;          /* thickness of the emoji border */
+  border-color: transparent;
+  /* 40×40 SVG with a centered emoji, base64-encoded */
+  border-image-source: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MCcgaGVpZ2h0PSc0MCc+PHRleHQgeD0nNTAlJyB5PSc1MCUnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGRvbWluYW50LWJhc2VsaW5lPSdtaWRkbGUnIGZvbnQtc2l6ZT0nMjgnPuKcqDwvdGV4dD48L3N2Zz4=");
+  border-image-slice: 20;      /* half the tile (40px) so corners/edges tile cleanly */
+  border-image-width: 12;      /* should match border-width above */
+  border-image-repeat: round;  /* tile evenly around all sides */
+}
 
         .hidden {
             display: none !important;
