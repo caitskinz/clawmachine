@@ -1,0 +1,50 @@
+.claw-container {
+  height: 200px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.claw {
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  top: -70px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: top 0.6s ease-in-out;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.arm {
+  width: 10px;
+  height: 40px;
+  background-color: #333;
+  border-radius: 5px;
+  transition: transform 0.3s ease;
+}
+
+.left {
+  transform: rotate(30deg);
+  transform-origin: top right;
+}
+
+.right {
+  transform: rotate(-30deg);
+  transform-origin: top left;
+}
+
+.claw.drop {
+  top: 120px;
+}
+
+.claw.grab .left {
+  transform: rotate(5deg);
+}
+
+.claw.grab .right {
+  transform: rotate(-5deg);
+}
