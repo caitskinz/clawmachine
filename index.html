@@ -1,322 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-    <title>Claw Machine Game</title>
-    <style>
-        :root {
-            --machine-w: min(92vw, 380px);
-            --machine-h: clamp(420px, 72dvh, 640px);
-            --btn-pad-v: 0.8rem;
-            --btn-pad-h: 1.2rem;
-            --btn-font: 1rem;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Labubu Claw</title>
+<style>
+  :root{
+    --machine-w: min(92vw, 380px);
+    --machine-h: clamp(420px, 72dvh, 640px);
+    --btn-pad-v: 0.8rem;
+    --btn-pad-h: 1.2rem;
+    --btn-font: 1rem;
+    --card-radius: 15px;
+  }
 
-            /* ✨ border tuning */
-            --tile: 40;
-            /* size of one emoji tile (px) */
-            --emoji: 28;
-            /* emoji font-size inside each tile (px) */
-            --sparkle-bw: 12px;
-            /* visual border thickness (px) */
-        }
+  * { box-sizing: border-box; }
 
-        * {
-            box-sizing: border-box;
-        }
+  body {
+    font-family: 'Comic Sans MS', sans-serif;
+    background: #f0f8ff;
+    display: grid;
+    place-items: center;
+    min-height: 100dvh;
+    margin: 0;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) calc(8px + env(safe-area-inset-bottom)) env(safe-area-inset-left);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-        body {
-            font-family: 'Helvetica', sans-serif;
-            background: #f0f8ff;
-            display: grid;
-            place-items: center;
-            min-height: 100dvh;
-            margin: 0;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) calc(8px + env(safe-area-inset-bottom)) env(safe-area-inset-left);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+  .claw-machine {
+    position: relative;
+    width: var(--machine-w);
+    height: var(--machine-h);
+    background: #e0e0e0;
+    border: 8px solid #333;
+    border-radius: 20px;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
 
-        .claw-machine {
-            position: relative;
-            width: var(--machine-w);
-            height: var(--machine-h);
-            background: #e0e0e0;
-            border: 8px solid #333;
-            border-radius: 20px;
-            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-        }
+  .glass {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+    pointer-events: none;
+    z-index: 2;
+  }
 
-        .glass {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
-            pointer-events: none;
-            z-index: 2;
-        }
+  .claw-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+  }
 
-        .claw-container {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 3;
-        }
+  .claw {
+    position: relative;
+    width: 40px;
+    height: 80px;
+    background: #999;
+    margin: 0 auto;
+    transition: transform 1s ease-in-out;
+    will-change: transform;
+  }
+  .claw.move-down { animation: down 1s ease-in-out forwards; }
+  .claw.move-up   { animation: up 0.5s ease-in-out forwards; }
+  .claw.wiggle    { animation: wiggle 0.5s ease-in-out; }
 
-        .claw {
-            position: relative;
-            width: 40px;
-            height: 80px;
-            background: #999;
-            margin: 0 auto;
-            transition: transform 1s ease-in-out;
-            will-change: transform;
-        }
+  .arm {
+    position: absolute;
+    width: 10px;
+    height: 40px;
+    background: #666;
+    top: 40px;
+  }
+  .arm.left  { left: 0;  transform: rotate(30deg); }
+  .arm.right { right: 0; transform: rotate(-30deg); }
 
-        .claw.move-down {
-            animation: down 1s ease-in-out forwards;
-        }
+  @keyframes down   { 0% { transform: translateY(0); } 100% { transform: translateY(120px); } }
+  @keyframes up     { 0% { transform: translateY(120px); } 100% { transform: translateY(0); } }
+  @keyframes wiggle {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(5deg); }
+    50% { transform: rotate(-5deg); }
+    75% { transform: rotate(5deg); }
+    100% { transform: rotate(0deg); }
+  }
 
-        .claw.move-up {
-            animation: up 0.5s ease-in-out forwards;
-        }
+  .card {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: clamp(14px, 3.5vw, 20px);
+    border: 3px solid #333;
+    border-radius: var(--card-radius);
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    width: min(90%, 320px);
+  }
+  .card.hidden { display: none; }
+  .card.show {
+    display: block;
+    animation: bounceIn 0.5s ease-out;
+  }
 
-        .claw.wiggle {
-            animation: wiggle 0.5s ease-in-out;
-        }
+  .hidden { display: none !important; }
 
-        .arm {
-            position: absolute;
-            width: 10px;
-            height: 40px;
-            background: #666;
-            top: 40px;
-        }
+  @keyframes bounceIn {
+    0%   { transform: translate(-50%, -60%) scale(0.9); opacity: 0; }
+    50%  { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1); }
+  }
 
-        .arm.left {
-            left: 0;
-            transform: rotate(30deg);
-        }
+  /* --- ✨ TEXT-BASED SPARKLE BORDER --- */
+  .sparkle-frame {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: var(--card-radius);
+    z-index: 1; /* above card background, below content overlay if any */
+  }
 
-        .arm.right {
-            right: 0;
-            transform: rotate(-30deg);
-        }
+  .sparkle-edge {
+    position: absolute;
+    font-size: 24px;      /* emoji size; tweak to taste */
+    line-height: 1;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.15);
+    white-space: nowrap;
+    user-select: none;
+  }
 
-        @keyframes down {
-            0% {
-                transform: translateY(0);
-            }
+  /* top/bottom rows: horizontally centered, nudged outward a bit */
+  .sparkle-edge.top {
+    top: 0; left: 50%;
+    transform: translate(-50%, -70%);
+  }
+  .sparkle-edge.bottom {
+    bottom: 0; left: 50%;
+    transform: translate(-50%, 70%);
+  }
 
-            100% {
-                transform: translateY(120px);
-            }
-        }
+  /* left/right columns: vertical text */
+  .sparkle-edge.left,
+  .sparkle-edge.right {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 2px;
+  }
+  .sparkle-edge.left {
+    left: 0; top: 50%;
+    transform: translate(-70%, -50%);
+  }
+  .sparkle-edge.right {
+    right: 0; top: 50%;
+    transform: translate(70%, -50%);
+  }
+  /* --- end sparkle border --- */
 
-        @keyframes up {
-            0% {
-                transform: translateY(120px);
-            }
+  #itemImage {
+    width: min(45vw, 140px);
+    height: min(45vw, 140px);
+    object-fit: contain;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 2; /* keep above the sparkle-frame */
+  }
+  #itemName {
+    margin: 0.2rem 0 0.6rem;
+    font-size: clamp(18px, 4.5vw, 24px);
+    position: relative;
+    z-index: 2;
+  }
 
-            100% {
-                transform: translateY(0);
-            }
-        }
+  #pullButton,
+  #pullAgainButton {
+    padding: var(--btn-pad-v) var(--btn-pad-h);
+    font-size: var(--btn-font);
+    line-height: 1.2;
+    border: none;
+    border-radius: 12px;
+    background-color: #ff4081;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px #c91c57;
+    transition: background-color 0.2s, transform 0.02s, opacity 0.2s;
+    z-index: 5;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  #pullButton:hover,
+  #pullAgainButton:hover { background-color: #e0306e; }
+  #pullButton:active,
+  #pullAgainButton:active { transform: translateY(1px); }
 
-        @keyframes wiggle {
-            0% {
-                transform: rotate(0deg);
-            }
+  #pullButton {
+    position: absolute;
+    left: 50%;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    width: min(82%, 320px);
+  }
 
-            25% {
-                transform: rotate(5deg);
-            }
+  @media (max-width: 480px) {
+    :root {
+      --btn-pad-v: 0.9rem;
+      --btn-pad-h: 1.2rem;
+      --btn-font: 1.05rem;
+    }
+    .claw { width: 36px; height: 72px; }
+    .arm { height: 36px; }
+  }
 
-            50% {
-                transform: rotate(-5deg);
-            }
+  @media (max-height: 560px) {
+    .claw-machine { border-width: 6px; }
+    #itemImage { width: min(36vw, 110px); height: min(36vw, 110px); }
+  }
 
-            75% {
-                transform: rotate(5deg);
-            }
-
-            100% {
-                transform: rotate(0deg);
-            }
-        }
-
-        .card {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #fff;
-            padding: clamp(14px, 3.5vw, 20px);
-            border: 3px solid #333;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-            z-index: 10;
-            width: min(90%, 320px);
-        }
-
-        .card.hidden {
-            display: none;
-        }
-
-        .card.show {
-            display: block;
-            animation: bounceIn 0.5s ease-out;
-        }
-
-        /* ✨ Emoji border: tiles the emoji around ALL sides & corners */
-        /* ✨ Emoji border that repeats around all sides */
-.card.sparkle-border {
-  border-style: solid;
-  border-width: 12px;          /* thickness of the emoji border */
-  border-color: transparent;
-  /* 40×40 SVG with a centered emoji, base64-encoded */
-  border-image-source: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MCcgaGVpZ2h0PSc0MCc+PHRleHQgeD0nNTAlJyB5PSc1MCUnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGRvbWluYW50LWJhc2VsaW5lPSdtaWRkbGUnIGZvbnQtc2l6ZT0nMjgnPuKcqDwvdGV4dD48L3N2Zz4=");
-  border-image-slice: 20;      /* half the tile (40px) so corners/edges tile cleanly */
-  border-image-width: 12;      /* should match border-width above */
-  border-image-repeat: round;  /* tile evenly around all sides */
-}
-
-        .hidden {
-            display: none !important;
-        }
-
-        @keyframes bounceIn {
-            0% {
-                transform: translate(-50%, -60%) scale(0.9);
-                opacity: 0;
-            }
-
-            50% {
-                transform: translate(-50%, -50%) scale(1.05);
-                opacity: 1;
-            }
-
-            100% {
-                transform: translate(-50%, -50%) scale(1);
-            }
-        }
-
-        #itemImage {
-            width: min(45vw, 140px);
-            height: min(45vw, 140px);
-            object-fit: contain;
-            margin-bottom: 10px;
-        }
-
-        #itemName {
-            margin: 0.2rem 0 0.6rem;
-            font-size: clamp(18px, 4.5vw, 24px);
-        }
-
-        #pullButton,
-        #pullAgainButton {
-            padding: var(--btn-pad-v) var(--btn-pad-h);
-            font-size: var(--btn-font);
-            line-height: 1.2;
-            border: none;
-            border-radius: 12px;
-            background-color: #ff4081;
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 4px #c91c57;
-            transition: background-color 0.2s, transform 0.02s, opacity 0.2s;
-            z-index: 5;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-            user-select: none;
-        }
-
-        #pullButton:hover,
-        #pullAgainButton:hover {
-            background-color: #e0306e;
-        }
-
-        #pullButton:active,
-        #pullAgainButton:active {
-            transform: translateY(1px);
-        }
-
-        #pullButton {
-            position: absolute;
-            left: 50%;
-            bottom: calc(12px + env(safe-area-inset-bottom));
-            transform: translateX(-50%);
-            width: min(82%, 320px);
-        }
-
-        @media (max-width: 480px) {
-            :root {
-                --btn-pad-v: 0.9rem;
-                --btn-pad-h: 1.2rem;
-                --btn-font: 1.05rem;
-            }
-
-            .claw {
-                width: 36px;
-                height: 72px;
-            }
-
-            .arm {
-                height: 36px;
-            }
-        }
-
-        @media (max-height: 560px) {
-            .claw-machine {
-                border-width: 6px;
-            }
-
-            #itemImage {
-                width: min(36vw, 110px);
-                height: min(36vw, 110px);
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-
-            .claw,
-            .claw.move-down,
-            .claw.move-up,
-            .claw.wiggle,
-            .card.show {
-                animation: none !important;
-                transition: none !important;
-            }
-        }
-    </style>
+  @media (prefers-reduced-motion: reduce) {
+    .claw,
+    .claw.move-down,
+    .claw.move-up,
+    .claw.wiggle,
+    .card.show {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>
 </head>
-
 <body>
-    <h1>✨ The Claw ✨</h1>
-    <div class="claw-machine">
-        <div class="glass"></div>
+    <h1>✨The Claw ✨</h1>
+  <div class="claw-machine">
+    <div class="glass"></div>
 
-        <div class="claw-container">
-            <div class="claw" id="claw">
-                <div class="arm left"></div>
-                <div class="arm right"></div>
-            </div>
-        </div>
-
-        <div id="resultCard" class="card hidden" aria-live="polite">
-            <img id="itemImage" src="" alt="Item" />
-            <h2 id="itemName"></h2>
-            <button id="pullAgainButton" type="button">🔄 Pull Again</button>
-        </div>
-
-        <button id="pullButton" type="button">🎯 Grab!</button>
+    <div class="claw-container">
+      <div class="claw" id="claw">
+        <div class="arm left"></div>
+        <div class="arm right"></div>
+      </div>
     </div>
 
-    <script>
-        // Use RAW GitHub URLs + numeric weights
+    <div id="resultCard" class="card hidden" aria-live="polite">
+      <!-- sparkle-frame is injected dynamically when needed -->
+      <img id="itemImage" src="" alt="Item" />
+      <h2 id="itemName"></h2>
+      <button id="pullAgainButton" type="button">🔄 Pull Again</button>
+    </div>
+
+    <button id="pullButton" type="button">🎯 Grab!</button>
+  </div>
+
+<script>
+  // Use RAW GitHub URLs + numeric weights
   const base = "https://raw.githubusercontent.com/caitskinz/clawmachine/main/";
   const items = [
     { name: "Soy Milk",        color: "#e8ccae", weight: 17, image: base + "Soy%20Milk.jpg" },
@@ -337,7 +276,7 @@
     { name: "Happiness",       color: "#f0bea6", weight: 17, image: base + "Happiness.png" },
     { name: "Loyalty",         color: "#faaaba", weight: 17, image: base + "Loyalty.png" },
     { name: "Serenity",        color: "#54a276", weight: 17, image: base + "Serenity.png" },
-    { name: "Hope",            color: "#44a0cd", weight: 17, image: base + "Hope.png" }, /* slight color tweak optional */
+    { name: "Hope",            color: "#44b0cd", weight: 17, image: base + "Hope.png" },
     { name: "Luck",            color: "#d2b3da", weight: 17, image: base + "Luck.png" },
     { name: "Id",              color: "#5a5a5a", weight: 1,  image: base + "Id.jpg" },
   ];
@@ -356,6 +295,7 @@
     });
   }
 
+  // touch feedback
   [pullButton, pullAgainButton].forEach(btn => {
     btn.addEventListener('touchstart', () => btn.classList.add('active'));
     btn.addEventListener('touchend',   () => btn.classList.remove('active'));
@@ -364,6 +304,7 @@
 
   pullButton.addEventListener('click', startClawAnimation);
   pullAgainButton.addEventListener('click', startClawAnimation);
+  window.addEventListener('resize', renderSparkleBorder); // keep border filled on orientation changes
 
   function startClawAnimation() {
     if (animating) return;
@@ -374,7 +315,7 @@
     card.classList.add('hidden');
 
     claw.classList.remove('wiggle', 'move-up', 'move-down');
-    void claw.offsetWidth;
+    void claw.offsetWidth; // restart animation
     claw.classList.add('move-down');
 
     setTimeout(() => {
@@ -383,6 +324,7 @@
 
       const item = getRandomItem();
 
+      // suspense gap
       setTimeout(() => {
         showItem(item);
         claw.classList.remove('move-up');
@@ -413,18 +355,61 @@
     name.textContent = item.name;
     name.style.color = item.color;
 
-    // ✨ Add/remove the emoji border for rare items
-    if (item.weight === 1) {
-      card.classList.add('sparkle-border');
-    } else {
-      card.classList.remove('sparkle-border');
-    }
+    // Toggle the ✨ frame for rare items
+    applySparkleBorder(item.weight === 1);
 
     card.classList.remove('hidden', 'show');
-    void card.offsetWidth;
+    void card.offsetWidth; // restart animation
     card.classList.add('show');
-  }
-    </script>
-</body>
 
+    // ensure border fills correctly after layout
+    requestAnimationFrame(renderSparkleBorder);
+  }
+
+  /* ---------- Sparkle frame helpers (text-based) ---------- */
+  function applySparkleBorder(enabled) {
+    const card = document.getElementById('resultCard');
+    let frame = card.querySelector('.sparkle-frame');
+
+    if (!enabled) {
+      if (frame) frame.remove();
+      return;
+    }
+
+    if (!frame) {
+      frame = document.createElement('div');
+      frame.className = 'sparkle-frame';
+      frame.innerHTML = `
+        <div class="sparkle-edge top"></div>
+        <div class="sparkle-edge bottom"></div>
+        <div class="sparkle-edge left"></div>
+        <div class="sparkle-edge right"></div>
+      `;
+      card.appendChild(frame);
+    }
+  }
+
+  function renderSparkleBorder() {
+    const card = document.getElementById('resultCard');
+    const frame = card.querySelector('.sparkle-frame');
+    if (!frame || card.classList.contains('hidden')) return;
+
+    const tile = 24; // px per emoji (roughly matches .sparkle-edge font-size)
+    const w = card.clientWidth;
+    const h = card.clientHeight;
+
+    const countX = Math.max(1, Math.ceil(w / tile));
+    const countY = Math.max(1, Math.ceil(h / tile));
+
+    const row = '✨'.repeat(countX);
+    const col = '✨'.repeat(countY);
+
+    frame.querySelector('.top').textContent = row;
+    frame.querySelector('.bottom').textContent = row;
+    frame.querySelector('.left').textContent = col;
+    frame.querySelector('.right').textContent = col;
+  }
+  /* -------------------------------------------------------- */
+</script>
+</body>
 </html>
