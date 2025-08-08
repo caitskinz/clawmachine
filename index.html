@@ -23,7 +23,7 @@
     background: #f0f8ff;
     display: grid;
     place-items: center;
-    min-height: 100dvh; /* handles mobile browser chrome better */
+    min-height: 100dvh;
     margin: 0;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) calc(8px + env(safe-area-inset-bottom)) env(safe-area-inset-left);
     -webkit-font-smoothing: antialiased;
@@ -109,26 +109,26 @@
     animation: bounceIn 0.5s ease-out;
   }
 
+  /* ✨ Emoji border only when rare (replaces the default 3px border) */
+  .card.sparkle-border {
+    border-width: 12px;             /* thicker to make emojis clear */
+    border-style: solid;
+    border-color: transparent;
+    /* Repeat ✨ around the card using an SVG data URL */
+    border-image-source: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'>\
+<text x='0' y='28' font-size='28'>✨</text>\
+</svg>");
+    border-image-slice: 30;
+    border-image-repeat: round;
+  }
+
   .hidden { display: none !important; }
 
   @keyframes bounceIn {
     0%   { transform: translate(-50%, -60%) scale(0.9); opacity: 0; }
     50%  { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
     100% { transform: translate(-50%, -50%) scale(1); }
-  }
-
-  .sparkle-overlay {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%) center center / 10px 10px repeat;
-    animation: sparkle 1s linear infinite;
-    border-radius: 15px;
-    z-index: 1;
-  }
-  @keyframes sparkle {
-    0% { background-position: 0 0; }
-    100% { background-position: 100% 100%; }
   }
 
   #itemImage {
@@ -170,7 +170,7 @@
     left: 50%;
     bottom: calc(12px + env(safe-area-inset-bottom));
     transform: translateX(-50%);
-    width: min(82%, 320px); /* nice big tap target on phones */
+    width: min(82%, 320px);
   }
 
   /* small-screen tweaks */
@@ -196,8 +196,7 @@
     .claw.move-down,
     .claw.move-up,
     .claw.wiggle,
-    .card.show,
-    .sparkle-overlay {
+    .card.show {
       animation: none !important;
       transition: none !important;
     }
@@ -216,7 +215,6 @@
     </div>
 
     <div id="resultCard" class="card hidden" aria-live="polite">
-      <div class="sparkle-overlay hidden" id="sparkle"></div>
       <img id="itemImage" src="" alt="Item" />
       <h2 id="itemName"></h2>
       <button id="pullAgainButton" type="button">🔄 Pull Again</button>
@@ -266,7 +264,7 @@
     });
   }
 
-  // active state for touch (gives quick visual feedback)
+  // active state for touch
   [pullButton, pullAgainButton].forEach(btn => {
     btn.addEventListener('touchstart', () => btn.classList.add('active'));
     btn.addEventListener('touchend',   () => btn.classList.remove('active'));
@@ -319,17 +317,17 @@
     const card = document.getElementById('resultCard');
     const img = document.getElementById('itemImage');
     const name = document.getElementById('itemName');
-    const sparkle = document.getElementById('sparkle');
 
     img.src = item.image;
     img.alt = item.name;
     name.textContent = item.name;
     name.style.color = item.color;
 
+    // ✨ Add/remove the emoji border for rare items
     if (item.weight === 1) {
-      sparkle.classList.remove('hidden');
+      card.classList.add('sparkle-border');
     } else {
-      sparkle.classList.add('hidden');
+      card.classList.remove('sparkle-border');
     }
 
     card.classList.remove('hidden', 'show');
