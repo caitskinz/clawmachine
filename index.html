@@ -1,210 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Claw Machine Game</title>
-    <style>
-        body {
-            font-family: 'Comic Sans MS', cursive;
-            text-align: center;
-            background: #f0f8ff;
-            padding: 2rem;
-        }
-
-        .machine {
-            margin: auto;
-            max-width: 400px;
-        }
-
-        button {
-            background-color: #FF6B6B;
-            color: white;
-            font-size: 1.5rem;
-            padding: 0.5rem 1.5rem;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #ff3b3b;
-        }
-
-        .card {
-            margin-top: 2rem;
-            padding: 1rem;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            background-color: white;
-            animation: popIn 0.5s ease;
-        }
-
-        .card img {
-            max-width: 100px;
-        }
-
-        .card.hidden {
-            display: none;
-        }
-
-        @keyframes popIn {
-            from {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .claw-container {
-            height: 200px;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 1rem;
-        }
-
-        .claw {
-            width: 60px;
-            height: 60px;
-            position: absolute;
-            top: -70px;
-            left: 50%;
-            transform: translateX(-50%);
-            transition: top 0.6s ease-in-out;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            gap: 10px;
-        }
-
-        .arm {
-            width: 10px;
-            height: 40px;
-            background-color: #333;
-            border-radius: 5px;
-            transition: transform 0.3s ease;
-        }
-
-        .left {
-            transform: rotate(30deg);
-            transform-origin: top right;
-        }
-
-        .right {
-            transform: rotate(-30deg);
-            transform-origin: top left;
-        }
-
-        .claw.drop {
-            top: 120px;
-        }
-
-        .claw.grab .left {
-            transform: rotate(5deg);
-        }
-
-        .claw.grab .right {
-            transform: rotate(-5deg);
-        }
-    </style>
-</head>
-
-<body>
-    <div class="machine">
-        <div class="claw-container">
-            <div class="claw" id="claw">
-                <div class="arm left"></div>
-                <div class="arm right"></div>
-            </div>
-        </div>
-        <button id="pullButton">🎯 Pull Item</button>
-        <div id="resultCard" class="card hidden">
-            <img id="itemImage" src="" alt="Item">
-            <h2 id="itemName"></h2>
-        </div>
-    </div>
-    <script>
-        const items = [
-    { name: "Soy Milk", color: "#e8ccae", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Soy%20Milk.jpg" },
-    { name: "Lychee Berry", color: "#e19fa8", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Lychee%20Berry.jpg" },
-    { name: "Green Grape", color: "#a9ae87", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Green%20Grape.jpg" },
-    { name: "Sea Salt Coconut", color: "#a4adb5", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Sea%20Salt%20Coconut.jpg" },
-    { name: "Toffee", color: "#b69b83", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Toffee.jpg" },
-    { name: "Sesame Bean", color: "#aca49f", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Sesame%20Bean.jpg" },
-    { name: "Chestnut Cocoa", color: "#483423", weight: 1, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Chestnut%20Cocoa.jpg" },
-    { name: "Sisi", color: "#fbd4a5", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Sisi.jpg" },
-    { name: "Hehe", color: "#9f9f9f", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Hehe.jpg" },
-    { name: "Baba", color: "#cf9257", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Baba.jpg" },
-    { name: "Zizi", color: "#b8b1c4", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Zizi.jpg" },
-    { name: "Ququ", color: "#b5c7b1", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Ququ.jpg" },
-    { name: "Dada", color: "#f8d1c3", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Dada.jpg" },
-    { name: "Duoduo", color: "#542911", weight: 1, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Duoduo.jpg" },
-    { name: "Love", color: "#f23b57", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Love.png" },
-    { name: "Happiness", color: "#f0bea6", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Happiness.png" },
-    { name: "Loyalty", color: "#faaaba", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Loyalty.png" },
-    { name: "Serenity", color: "#54a276", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Serenity.png" },
-    { name: "Hope", color: "#44b0cd", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Hope.png" },
-    { name: "Luck", color: "#d2b3da", weight: 17, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Luck.png" },
-    { name: "Id", color: "#5a5a5a", weight: 1, image: "https://raw.githubusercontent.com/caitskinz/clawmachine/main/Id.jpg" }
-  ];
-
-  document.getElementById('pullButton').addEventListener('click', () => {
-    const claw = document.getElementById('claw');
-    const card = document.getElementById('resultCard');
-
-    // Hide previous card
-    card.classList.add('hidden');
-
-    // Start claw drop
-    claw.classList.add('drop');
-
-    // After drop, grab
-    setTimeout(() => {
-      claw.classList.add('grab');
-
-      // After grab, lift up
-      setTimeout(() => {
-        claw.classList.remove('drop');
-
-        // After lift finishes, reveal item
-        setTimeout(() => {
-          claw.classList.remove('grab');
-          const item = getRandomItem();
-          showItem(item);
-        }, 600);
-      }, 500);
-    }, 600);
-  });
-
-  function getRandomItem() {
-    const totalWeight = items.reduce((sum, item) => sum + Number(item.weight), 0);
-    let rand = Math.random() * totalWeight;
-
-    for (let item of items) {
-      if (rand < Number(item.weight)) return item;
-      rand -= Number(item.weight);
+<meta charset="UTF-8" />
+<title>Claw Machine Game</title>
+<style>
+body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: #f0f8ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
     }
+
+    .claw-machine {
+      position: relative;
+      width: 300px;
+      height: 400px;
+      background: #e0e0e0;
+      border: 8px solid #333;
+      border-radius: 20px;
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .glass {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(145deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .claw-container {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+    }
+
+    .claw {
+      position: relative;
+      width: 40px;
+      height: 80px;
+      background: #999;
+      margin: 0 auto;
+      transition: transform 1s ease-in-out;
+    }
+
+    .claw.move-down { animation: down 1s ease-in-out forwards; }
+    .claw.move-up   { animation: up 0.5s ease-in-out forwards; }
+    .claw.wiggle    { animation: wiggle 0.5s ease-in-out; }
+
+    .arm {
+      position: absolute;
+      width: 10px;
+      height: 40px;
+      background: #666;
+      top: 40px;
+    }
+    .arm.left  { left: 0;  transform: rotate(30deg); }
+    .arm.right { right: 0; transform: rotate(-30deg); }
+
+    @keyframes down   { 0% { transform: translateY(0); } 100% { transform: translateY(120px); } }
+    @keyframes up     { 0% { transform: translateY(120px); } 100% { transform: translateY(0); } }
+    @keyframes wiggle {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(5deg); }
+      50% { transform: rotate(-5deg); }
+      75% { transform: rotate(5deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    .card {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px;
+      border: 3px solid #333;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      z-index: 10;
+    }
+
+    .card.hidden { display: none; }
+    .card.show {
+      display: block;
+      animation: bounceIn 0.5s ease-out;
+    }
+    
+.hidden { display: none !important; }
+
+    @keyframes bounceIn {
+      0%   { transform: translate(-50%, -60%) scale(0.9); opacity: 0; }
+      50%  { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+
+    .sparkle-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%) center center / 10px 10px repeat;
+      animation: sparkle 1s linear infinite;
+      border-radius: 15px;
+      z-index: 1;
+    }
+
+    @keyframes sparkle {
+      0% { background-position: 0 0; }
+      100% { background-position: 100% 100%; }
+    }
+
+    #itemImage {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+
+    #pullButton,
+    #pullAgainButton {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      background-color: #ff4081;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px #c91c57;
+      transition: background-color 0.3s, transform 0.02s;
+      z-index: 5;
+    }
+    #pullButton:hover,
+    #pullAgainButton:hover { background-color: #e0306e; }
+    #pullButton:active,
+    #pullAgainButton:active { transform: translateY(1px); }
+
+    /* place main button near bottom center */
+    #pullButton {
+      position: absolute;
+      left: 50%;
+      bottom: 12px;
+      transform: translateX(-50%);
+    }
+/* keep all the CSS from the last working version I gave you */
+</style>
+</head>
+<body>
+<div class="claw-machine">
+  <div class="glass"></div>
+
+  <div class="claw-container">
+    <div class="claw" id="claw">
+      <div class="arm left"></div>
+      <div class="arm right"></div>
+    </div>
+  </div>
+
+  <div id="resultCard" class="card hidden" aria-live="polite">
+    <div class="sparkle-overlay hidden" id="sparkle"></div>
+    <img id="itemImage" src="" alt="Item" />
+    <h2 id="itemName"></h2>
+    <button id="pullAgainButton" type="button">🔄 Pull Again</button>
+  </div>
+
+  <button id="pullButton" type="button">🎯 Grab!</button>
+</div>
+
+<script>
+const base = "https://raw.githubusercontent.com/caitskinz/clawmachine/main/";
+const items = [
+  { name: "Soy Milk", color: "#e8ccae", weight: 17, image: base + "Soy%20Milk.jpg" },
+  { name: "Lychee Berry", color: "#e19fa8", weight: 17, image: base + "Lychee%20Berry.jpg" },
+  { name: "Green Grape", color: "#a9ae87", weight: 17, image: base + "Green%20Grape.jpg" },
+  { name: "Sea Salt Coconut", color: "#a4adb5", weight: 17, image: base + "Sea%20Salt%20Coconut.jpg" },
+  { name: "Toffee", color: "#b69b83", weight: 17, image: base + "Toffee.jpg" },
+  { name: "Sesame Bean", color: "#aca49f", weight: 17, image: base + "Sesame%20Bean.jpg" },
+  { name: "Chestnut Cocoa", color: "#483423", weight: 1, image: base + "Chestnut%20Cocoa.jpg" },
+  { name: "Sisi", color: "#fbd4a5", weight: 17, image: base + "Sisi.jpg" },
+  { name: "Hehe", color: "#9f9f9f", weight: 17, image: base + "Hehe.jpg" },
+  { name: "Baba", color: "#cf9257", weight: 17, image: base + "Baba.jpg" },
+  { name: "Zizi", color: "#b8b1c4", weight: 17, image: base + "Zizi.jpg" },
+  { name: "Ququ", color: "#b5c7b1", weight: 17, image: base + "Ququ.jpg" },
+  { name: "Dada", color: "#f8d1c3", weight: 17, image: base + "Dada.jpg" },
+  { name: "Duoduo", color: "#542911", weight: 1, image: base + "Duoduo.jpg" },
+  { name: "Love", color: "#f23b57", weight: 17, image: base + "Love.png" },
+  { name: "Happiness", color: "#f0bea6", weight: 17, image: base + "Happiness.png" },
+  { name: "Loyalty", color: "#faaaba", weight: 17, image: base + "Loyalty.png" },
+  { name: "Serenity", color: "#54a276", weight: 17, image: base + "Serenity.png" },
+  { name: "Hope", color: "#44b0cd", weight: 17, image: base + "Hope.png" },
+  { name: "Luck", color: "#d2b3da", weight: 17, image: base + "Luck.png" },
+  { name: "Id", color: "#5a5a5a", weight: 1, image: base + "Id.jpg" },
+];
+
+const pullButton = document.getElementById('pullButton');
+const pullAgainButton = document.getElementById('pullAgainButton');
+const claw = document.getElementById('claw');
+
+let animating = false;
+
+function setButtonsEnabled(enabled) {
+  [pullButton, pullAgainButton].forEach(btn => {
+    btn.disabled = !enabled;
+    btn.style.opacity = enabled ? '1' : '0.6';
+    btn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+  });
+}
+
+pullButton.addEventListener('click', startClawAnimation);
+pullAgainButton.addEventListener('click', startClawAnimation);
+
+function startClawAnimation() {
+  if (animating) return;
+  animating = true;
+  setButtonsEnabled(false);
+
+  const card = document.getElementById('resultCard');
+  card.classList.add('hidden');
+
+  claw.classList.remove('wiggle', 'move-up', 'move-down');
+  void claw.offsetWidth;
+  claw.classList.add('move-down');
+
+  setTimeout(() => {
+    claw.classList.remove('move-down');
+    claw.classList.add('move-up');
+
+    const item = getRandomItem();
+
+    // wait until claw fully up, then add suspense delay
+    setTimeout(() => {
+      showItem(item);
+      claw.classList.remove('move-up');
+      claw.classList.add('wiggle');
+      animating = false;
+      setButtonsEnabled(true);
+    }, 1200); // ↑ longer gap for suspense (0.6s up + 0.6s pause)
+  }, 1000);
+}
+
+function getRandomItem() {
+  const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+  let rand = Math.random() * totalWeight;
+  for (const item of items) {
+    if (rand < item.weight) return item;
+    rand -= item.weight;
+  }
+  return items[items.length - 1];
+}
+
+function showItem(item) {
+  const card = document.getElementById('resultCard');
+  const img = document.getElementById('itemImage');
+  const name = document.getElementById('itemName');
+  const sparkle = document.getElementById('sparkle');
+
+  img.src = item.image;
+  img.alt = item.name;
+  name.textContent = item.name;
+  name.style.color = item.color;
+
+  if (item.weight === 1) {
+    sparkle.classList.remove('hidden');
+  } else {
+    sparkle.classList.add('hidden');
   }
 
-  function showItem(item) {
-    const card = document.getElementById('resultCard');
-    const img = document.getElementById('itemImage');
-    const name = document.getElementById('itemName');
-
-    img.src = item.image;
-    img.alt = item.name;
-    name.textContent = item.name;
-    name.style.color = item.color;
-
-    card.classList.remove('hidden');
-  }
-    </script>
+  card.classList.remove('hidden', 'show');
+  void card.offsetWidth;
+  card.classList.add('show');
+}
+</script>
 </body>
-
 </html>
