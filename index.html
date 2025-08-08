@@ -1,230 +1,326 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
-/>
-<title>Labubu Puller</title>
-<style>
-  :root{
-    --machine-w: min(92vw, 380px);
-    --machine-h: clamp(420px, 72dvh, 640px);
-    --btn-pad-v: 0.8rem;
-    --btn-pad-h: 1.2rem;
-    --btn-font: 1rem;
-  }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <title>Claw Machine Game</title>
+    <style>
+        :root {
+            --machine-w: min(92vw, 380px);
+            --machine-h: clamp(420px, 72dvh, 640px);
+            --btn-pad-v: 0.8rem;
+            --btn-pad-h: 1.2rem;
+            --btn-font: 1rem;
 
-  * { box-sizing: border-box; }
+            /* ✨ border tuning */
+            --tile: 40;
+            /* size of one emoji tile (px) */
+            --emoji: 28;
+            /* emoji font-size inside each tile (px) */
+            --sparkle-bw: 12px;
+            /* visual border thickness (px) */
+        }
 
-  body {
-    font-family: 'Helvetica', sans-serif;
-    background: #f0f8ff;
-    display: grid
-    place-items: center;
-    min-height: 100dvh;
-    margin: 0;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) calc(8px + env(safe-area-inset-bottom)) env(safe-area-inset-left);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+        * {
+            box-sizing: border-box;
+        }
 
-  .claw-machine {
-    position: relative;
-    width: var(--machine-w);
-    height: var(--machine-h);
-    background: #e0e0e0;
-    border: 8px solid #333;
-    border-radius: 20px;
-    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-  }
+        body {
+            font-family: 'Helvetica', sans-serif;
+            background: #f0f8ff;
+            display: grid;
+            place-items: center;
+            min-height: 100dvh;
+            margin: 0;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) calc(8px + env(safe-area-inset-bottom)) env(safe-area-inset-left);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
 
-  .glass {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(145deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
-    pointer-events: none;
-    z-index: 2;
-  }
+        .claw-machine {
+            position: relative;
+            width: var(--machine-w);
+            height: var(--machine-h);
+            background: #e0e0e0;
+            border: 8px solid #333;
+            border-radius: 20px;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
 
-  .claw-container {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 3;
-  }
+        .glass {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+            pointer-events: none;
+            z-index: 2;
+        }
 
-  .claw {
-    position: relative;
-    width: 40px;
-    height: 80px;
-    background: #999;
-    margin: 0 auto;
-    transition: transform 1s ease-in-out;
-    will-change: transform;
-  }
-  .claw.move-down { animation: down 1s ease-in-out forwards; }
-  .claw.move-up   { animation: up 0.5s ease-in-out forwards; }
-  .claw.wiggle    { animation: wiggle 0.5s ease-in-out; }
+        .claw-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+        }
 
-  .arm {
-    position: absolute;
-    width: 10px;
-    height: 40px;
-    background: #666;
-    top: 40px;
-  }
-  .arm.left  { left: 0;  transform: rotate(30deg); }
-  .arm.right { right: 0; transform: rotate(-30deg); }
+        .claw {
+            position: relative;
+            width: 40px;
+            height: 80px;
+            background: #999;
+            margin: 0 auto;
+            transition: transform 1s ease-in-out;
+            will-change: transform;
+        }
 
-  @keyframes down   { 0% { transform: translateY(0); } 100% { transform: translateY(120px); } }
-  @keyframes up     { 0% { transform: translateY(120px); } 100% { transform: translateY(0); } }
-  @keyframes wiggle {
-    0% { transform: rotate(0deg); }
-    25% { transform: rotate(5deg); }
-    50% { transform: rotate(-5deg); }
-    75% { transform: rotate(5deg); }
-    100% { transform: rotate(0deg); }
-  }
+        .claw.move-down {
+            animation: down 1s ease-in-out forwards;
+        }
 
-  .card {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background: #fff;
-    padding: clamp(14px, 3.5vw, 20px);
-    border: 3px solid #333;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    z-index: 10;
-    width: min(90%, 320px);
-  }
-  .card.hidden { display: none; }
-  .card.show {
-    display: block;
-    animation: bounceIn 0.5s ease-out;
-  }
+        .claw.move-up {
+            animation: up 0.5s ease-in-out forwards;
+        }
 
-  /* ✨ Emoji border only when rare (replaces the default 3px border) */
-  .card.sparkle-border {
-    border-width: 12px;             /* thicker to make emojis clear */
-    border-style: solid;
-    border-color: transparent;
-    /* Repeat ✨ around the card using an SVG data URL */
-    border-image-source: url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'>\
-<text x='0' y='28' font-size='28'>✨</text>\
-</svg>");
-    border-image-slice: 30;
-    border-image-repeat: round;
-  }
+        .claw.wiggle {
+            animation: wiggle 0.5s ease-in-out;
+        }
 
-  .hidden { display: none !important; }
+        .arm {
+            position: absolute;
+            width: 10px;
+            height: 40px;
+            background: #666;
+            top: 40px;
+        }
 
-  @keyframes bounceIn {
-    0%   { transform: translate(-50%, -60%) scale(0.9); opacity: 0; }
-    50%  { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(1); }
-  }
+        .arm.left {
+            left: 0;
+            transform: rotate(30deg);
+        }
 
-  #itemImage {
-    width: min(45vw, 140px);
-    height: min(45vw, 140px);
-    object-fit: contain;
-    margin-bottom: 10px;
-  }
-  #itemName {
-    margin: 0.2rem 0 0.6rem;
-    font-size: clamp(18px, 4.5vw, 24px);
-  }
+        .arm.right {
+            right: 0;
+            transform: rotate(-30deg);
+        }
 
-  #pullButton,
-  #pullAgainButton {
-    padding: var(--btn-pad-v) var(--btn-pad-h);
-    font-size: var(--btn-font);
-    line-height: 1.2;
-    border: none;
-    border-radius: 12px;
-    background-color: #ff4081;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 4px #c91c57;
-    transition: background-color 0.2s, transform 0.02s, opacity 0.2s;
-    z-index: 5;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-    user-select: none;
-  }
-  #pullButton:hover,
-  #pullAgainButton:hover { background-color: #e0306e; }
-  #pullButton:active,
-  #pullAgainButton:active { transform: translateY(1px); }
+        @keyframes down {
+            0% {
+                transform: translateY(0);
+            }
 
-  /* place main button near bottom center with safe-area padding */
-  #pullButton {
-    position: absolute;
-    left: 50%;
-    bottom: calc(12px + env(safe-area-inset-bottom));
-    transform: translateX(-50%);
-    width: min(82%, 320px);
-  }
+            100% {
+                transform: translateY(120px);
+            }
+        }
 
-  /* small-screen tweaks */
-  @media (max-width: 480px) {
-    :root {
-      --btn-pad-v: 0.9rem;
-      --btn-pad-h: 1.2rem;
-      --btn-font: 1.05rem;
-    }
-    .claw { width: 36px; height: 72px; }
-    .arm { height: 36px; }
-  }
+        @keyframes up {
+            0% {
+                transform: translateY(120px);
+            }
 
-  /* very short displays (landscape phones) */
-  @media (max-height: 560px) {
-    .claw-machine { border-width: 6px; }
-    #itemImage { width: min(36vw, 110px); height: min(36vw, 110px); }
-  }
+            100% {
+                transform: translateY(0);
+            }
+        }
 
-  /* accessibility: respect reduced motion */
-  @media (prefers-reduced-motion: reduce) {
-    .claw,
-    .claw.move-down,
-    .claw.move-up,
-    .claw.wiggle,
-    .card.show {
-      animation: none !important;
-      transition: none !important;
-    }
-  }
-</style>
+        @keyframes wiggle {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            25% {
+                transform: rotate(5deg);
+            }
+
+            50% {
+                transform: rotate(-5deg);
+            }
+
+            75% {
+                transform: rotate(5deg);
+            }
+
+            100% {
+                transform: rotate(0deg);
+            }
+        }
+
+        .card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: clamp(14px, 3.5vw, 20px);
+            border: 3px solid #333;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            width: min(90%, 320px);
+        }
+
+        .card.hidden {
+            display: none;
+        }
+
+        .card.show {
+            display: block;
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        /* ✨ Emoji border: tiles the emoji around ALL sides & corners */
+        .card.sparkle-border {
+            border-style: solid;
+            border-width: var(--sparkle-bw);
+            border-color: transparent;
+            /* center the emoji inside a square tile; extra transparent area avoids clipping */
+            border-image-source: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='%%TILE%%' height='%%TILE%%'>\
+<text x='50%%' y='52%%' text-anchor='middle' dominant-baseline='middle' font-size='%%EMOJI%%'>✨</text>\
+</svg>"
+                    .replace('%%TILE%%', getComputedStyle(document.documentElement).getPropertyValue('--tile').trim() || '40') .replace('%%EMOJI%%', getComputedStyle(document.documentElement).getPropertyValue('--emoji').trim() || '28'));
+            /* slice at half the tile for even corner/edge cuts */
+            border-image-slice: 50%;
+            border-image-width: var(--sparkle-bw);
+            border-image-repeat: round;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: translate(-50%, -60%) scale(0.9);
+                opacity: 0;
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        #itemImage {
+            width: min(45vw, 140px);
+            height: min(45vw, 140px);
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        #itemName {
+            margin: 0.2rem 0 0.6rem;
+            font-size: clamp(18px, 4.5vw, 24px);
+        }
+
+        #pullButton,
+        #pullAgainButton {
+            padding: var(--btn-pad-v) var(--btn-pad-h);
+            font-size: var(--btn-font);
+            line-height: 1.2;
+            border: none;
+            border-radius: 12px;
+            background-color: #ff4081;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px #c91c57;
+            transition: background-color 0.2s, transform 0.02s, opacity 0.2s;
+            z-index: 5;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        #pullButton:hover,
+        #pullAgainButton:hover {
+            background-color: #e0306e;
+        }
+
+        #pullButton:active,
+        #pullAgainButton:active {
+            transform: translateY(1px);
+        }
+
+        #pullButton {
+            position: absolute;
+            left: 50%;
+            bottom: calc(12px + env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            width: min(82%, 320px);
+        }
+
+        @media (max-width: 480px) {
+            :root {
+                --btn-pad-v: 0.9rem;
+                --btn-pad-h: 1.2rem;
+                --btn-font: 1.05rem;
+            }
+
+            .claw {
+                width: 36px;
+                height: 72px;
+            }
+
+            .arm {
+                height: 36px;
+            }
+        }
+
+        @media (max-height: 560px) {
+            .claw-machine {
+                border-width: 6px;
+            }
+
+            #itemImage {
+                width: min(36vw, 110px);
+                height: min(36vw, 110px);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .claw,
+            .claw.move-down,
+            .claw.move-up,
+            .claw.wiggle,
+            .card.show {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <div class="claw-machine">
-    <div class="glass"></div>
+    <h1>✨ The Claw ✨</h1>
+    <div class="claw-machine">
+        <div class="glass"></div>
 
-    <div class="claw-container">
-      <div class="claw" id="claw">
-        <div class="arm left"></div>
-        <div class="arm right"></div>
-      </div>
+        <div class="claw-container">
+            <div class="claw" id="claw">
+                <div class="arm left"></div>
+                <div class="arm right"></div>
+            </div>
+        </div>
+
+        <div id="resultCard" class="card hidden" aria-live="polite">
+            <img id="itemImage" src="" alt="Item" />
+            <h2 id="itemName"></h2>
+            <button id="pullAgainButton" type="button">🔄 Pull Again</button>
+        </div>
+
+        <button id="pullButton" type="button">🎯 Grab!</button>
     </div>
 
-    <div id="resultCard" class="card hidden" aria-live="polite">
-      <img id="itemImage" src="" alt="Item" />
-      <h2 id="itemName"></h2>
-      <button id="pullAgainButton" type="button">🔄 Pull Again</button>
-    </div>
-
-    <button id="pullButton" type="button">🎯 Grab!</button>
-  </div>
-
-<script>
-  // Use RAW GitHub URLs + numeric weights
+    <script>
+        // Use RAW GitHub URLs + numeric weights
   const base = "https://raw.githubusercontent.com/caitskinz/clawmachine/main/";
   const items = [
     { name: "Soy Milk",        color: "#e8ccae", weight: 17, image: base + "Soy%20Milk.jpg" },
@@ -245,7 +341,7 @@
     { name: "Happiness",       color: "#f0bea6", weight: 17, image: base + "Happiness.png" },
     { name: "Loyalty",         color: "#faaaba", weight: 17, image: base + "Loyalty.png" },
     { name: "Serenity",        color: "#54a276", weight: 17, image: base + "Serenity.png" },
-    { name: "Hope",            color: "#44b0cd", weight: 17, image: base + "Hope.png" },
+    { name: "Hope",            color: "#44a0cd", weight: 17, image: base + "Hope.png" }, /* slight color tweak optional */
     { name: "Luck",            color: "#d2b3da", weight: 17, image: base + "Luck.png" },
     { name: "Id",              color: "#5a5a5a", weight: 1,  image: base + "Id.jpg" },
   ];
@@ -264,7 +360,6 @@
     });
   }
 
-  // active state for touch
   [pullButton, pullAgainButton].forEach(btn => {
     btn.addEventListener('touchstart', () => btn.classList.add('active'));
     btn.addEventListener('touchend',   () => btn.classList.remove('active'));
@@ -283,7 +378,7 @@
     card.classList.add('hidden');
 
     claw.classList.remove('wiggle', 'move-up', 'move-down');
-    void claw.offsetWidth; // reflow to restart animation
+    void claw.offsetWidth;
     claw.classList.add('move-down');
 
     setTimeout(() => {
@@ -292,7 +387,6 @@
 
       const item = getRandomItem();
 
-      // Suspense delay so the claw finishes and then reveals
       setTimeout(() => {
         showItem(item);
         claw.classList.remove('move-up');
@@ -331,9 +425,10 @@
     }
 
     card.classList.remove('hidden', 'show');
-    void card.offsetWidth; // restart animation
+    void card.offsetWidth;
     card.classList.add('show');
   }
-</script>
+    </script>
 </body>
+
 </html>
